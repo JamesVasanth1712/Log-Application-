@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Analysis Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="header" id="mainHeader">
+        <div class="header-content">
+            <h1>Log Analysis Pro</h1>
+            <!-- <p>Analyze MySQL, PostgreSQL, MongoDB and other logs — common metrics + DB-specific KPIs</p> -->
+        </div>
+    </div>
+    <div class="container" id="mainContainer">
+        <h2 class="section-title">Multi-Log Analysis Platform</h2>
+        <p class="section-subtitle">Upload logs — auto-detect type or choose specific. DB-specific KPIs will appear for MySQL/Postgres/MongoDB only.</p>
+        <div class="log-grid">
+            <div class="log-card" data-type="apache">
+                <div class="log-icon">📱</div>
+                <h3>Apache Logs</h3>
+                <p>Click to analyze apache logs</p>
+            </div>
+            <div class="log-card" data-type="docker">
+                <div class="log-icon">🐳</div>
+                <h3>Docker Logs</h3>
+                <p>Click to analyze docker logs</p>
+            </div>
+            <div class="log-card" data-type="ejabberd">
+                <div class="log-icon">💬</div>
+                <h3>Ejabberd Server Logs</h3>
+                <p>Click to analyze ejabberd server logs</p>
+            </div>
+            <div class="log-card" data-type="mongodb">
+                <div class="log-icon">🍃</div>
+                <h3>MongoDB Logs</h3>
+                <p>Click to analyze mongodb logs</p>
+            </div>
+            <div class="log-card" data-type="mysql">
+                <div class="log-icon">🐬</div>
+                <h3>MySQL Logs</h3>
+                <p>Click to analyze mysql logs</p>
+            </div>
+            <div class="log-card" data-type="nginx">
+                <div class="log-icon">🔷</div>
+                <h3>Nginx Logs</h3>
+                <p>Click to analyze nginx logs</p>
+            </div>
+            <div class="log-card" data-type="postgresql">
+                <div class="log-icon">🐘</div>
+                <h3>PostgreSQL Logs</h3>
+                <p>Click to analyze postgresql logs</p>
+            </div>
+            <div class="log-card" data-type="redis">
+                <div class="log-icon">🔴</div>
+                <h3>Redis Logs</h3>
+                <p>Click to analyze redis logs</p>
+            </div>
+        </div>
+        <!-- Modal Popup -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalTitle">Upload Log File</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <h3>Click to upload or drag & drop</h3>
+                        <p>Supports .txt, .log, .csv, .xlsx files</p>
+                        <p style="font-size:.9rem;color:#718096">Auto-detection enabled for MySQL, PostgreSQL, MongoDB & others</p>
+                        <input type="file" id="fileInput" accept=".txt,.log,.csv,.xlsx">
+                    </div>
+                    <div style="text-align:center;margin-top:2rem">
+                        <button class="btn-analyze" onclick="uploadFile()">Analyze Logs</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Loading Modal -->
+        <div class="loading-overlay" id="loading">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <h3>Analyzing log file...</h3>
+                <p style="color:#718096;margin-top:.5rem">Intelligent detection in progress</p>
+            </div>
+        </div>
+    </div>
+    <!-- Dashboard Page - Outside container -->
+    <div class="dashboard-page" id="dashboard">
+        <div class="dashboard-header">
+            <button class="btn-back" onclick="goBackToMain()">← Back to Main</button>
+            <h2 id="dashboardTitle">Log Analysis Results</h2>
+        </div>
+        <div class="dashboard">
+            <div class="dashboard-layout">
+                <div class="sidebar" style="display:none">
+                    <div class="sidebar-item active" data-type="apache">Apache</div>
+                    <div class="sidebar-item" data-type="nginx">Nginx</div>
+                    <div class="sidebar-item" data-type="docker">Docker</div>
+                    <div class="sidebar-item" data-type="mongodb">MongoDB</div>
+                    <div class="sidebar-item" data-type="mysql">MySQL</div>
+                    <div class="sidebar-item" data-type="postgresql">PostgreSQL</div>
+                    <div class="sidebar-item" data-type="redis">Redis</div>
+                    <div class="sidebar-item" data-type="ejabberd">Ejabberd</div>
+                </div>
+                <div class="dashboard-content">
+                    <div class="alert-panel" id="alertPanel" style="display:none">
+                        <div class="alert-title">Root Cause Analysis</div>
+                        <ul class="alert-list" id="alertList"></ul>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card blue">
+                            <div class="metric-value" id="totalLogs">0</div>
+                            <div class="metric-label">Total Logs</div>
+                        </div>
+                        <div class="metric-card red">
+                            <div class="metric-value" id="errorCount">0</div>
+                            <div class="metric-label">Errors</div>
+                        </div>
+                        <div class="metric-card orange">
+                            <div class="metric-value" id="warningCount">0</div>
+                            <div class="metric-label">Warnings</div>
+                        </div>
+                        <div class="metric-card green">
+                            <div class="metric-value" id="noticeCount">0</div>
+                            <div class="metric-label">Notices</div>
+                        </div>
+                        <div class="metric-card blue">
+                            <div class="metric-value" id="infoCount">0</div>
+                            <div class="metric-label">Info</div>
+                        </div>
+                        <!-- DB-specific metrics (only meaningful for MySQL/Postgres/MongoDB) -->
+                        <div class="metric-card red" id="cardFailedLogins" style="display:none">
+                            <div class="metric-value" id="failedLogins">0</div>
+                            <div class="metric-label">Failed Logins</div>
+                        </div>
+                        <div class="metric-card orange" id="cardUniqueUsers" style="display:none">
+                            <div class="metric-value" id="uniqueUsers">0</div>
+                            <div class="metric-label">Unique Users</div>
+                        </div>
+                        <div class="metric-card green" id="cardActiveUsers" style="display:none">
+                            <div class="metric-value" id="activeUsers">0</div>
+                            <div class="metric-label">Active Users (24h)</div>
+                        </div>
+                        <div class="metric-card blue" id="cardQueryErrors" style="display:none">
+                            <div class="metric-value" id="queryErrors">0</div>
+                            <div class="metric-label">Query Errors</div>
+                        </div>
+                    </div>
+                    <div class="chart-grid">
+                        <div class="chart-panel">
+                            <div class="chart-title">Log Level Distribution</div>
+                            <div class="chart-subtitle">By severity</div>
+                            <div class="chart-container">
+                                <canvas id="levelChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel">
+                            <div class="chart-title">Time Series Analysis</div>
+                            <div class="chart-subtitle">Hourly log volume</div>
+                            <div class="chart-container">
+                                <canvas id="timeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-grid" id="extraCharts"></div>
+                    <div class="table-panel" id="errorTable" style="display:none">
+                        <div class="chart-title">Top Error Messages</div>
+                        <div class="chart-subtitle">Most frequent errors</div>
+                        <table id="errorTableContent"></table>
+                    </div>
+                    <div class="table-panel" id="ipTable" style="display:none">
+                        <div class="chart-title">Top IP Addresses</div>
+                        <div class="chart-subtitle">By request count</div>
+                        <table id="ipTableContent"></table>
+                    </div>
+                    <div class="table-panel" id="failedTablePanel" style="display:none">
+                        <div class="chart-title">Failed Login Examples</div>
+                        <div class="chart-subtitle">Most frequent failed auth messages</div>
+                        <table id="failedTableContent"></table>
+                    </div>
+                    <div class="table-panel" id="topUsersPanel" style="display:none">
+                        <div class="chart-title">Top Users</div>
+                        <div class="chart-subtitle">Users by activity</div>
+                        <table id="topUsersContent"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+
