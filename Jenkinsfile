@@ -31,6 +31,7 @@ pipeline {
             steps {
                 echo 'Creating Python virtual environment...'
 
+                sh 'rm -rf .jenkins-venv'
                 sh 'python3 -m venv .jenkins-venv'
 
                 echo 'Installing Python dependencies...'
@@ -65,25 +66,50 @@ pipeline {
                 sh 'docker build -t log-application:ci .'
             }
         }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying Log Application...'
+
+                sh 'docker rm -f log-application || true'
+
+                sh 'docker run -d --name log-application -p 5000:5000 log-application:ci'
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                echo 'Checking Log Application health...'
+
+                sh '''
+                    sleep 5
+
+                    docker exec log-application python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=5); print('Log Application is healthy')"
+                '''
+            }
+        }
     }
 
     post {
 
         success {
             echo '=========================================='
-            echo 'Log Application CI SUCCESS'
+            echo 'Log Application CI/CD SUCCESS'
+            echo '=========================================='
+            echo 'Application deployed on port 5000'
+            echo 'Open: http://localhost:5000'
             echo '=========================================='
         }
 
         failure {
             echo '=========================================='
-            echo 'Log Application CI FAILED'
+            echo 'Log Application CI/CD FAILED'
             echo 'Check Console Output.'
             echo '=========================================='
         }
 
         always {
-            echo 'CI Pipeline execution completed.'
+            echo 'CI/CD Pipeline execution completed.'
         }
     }
 }
