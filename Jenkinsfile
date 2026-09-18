@@ -18,8 +18,12 @@ pipeline {
 
                 sh 'pwd'
                 sh 'ls -la'
+
                 sh 'python3 --version'
+                sh 'python3 -m pip --version'
+
                 sh 'docker --version'
+                sh 'docker compose version'
             }
         }
 
@@ -44,7 +48,9 @@ pipeline {
             steps {
                 echo 'Checking Flask application...'
 
-                sh 'python3 -c "import finalapp; print('\''Flask application imported successfully'\'')"'
+                sh '''
+                    python3 -c "import finalapp; print('Flask application imported successfully')"
+                '''
             }
         }
 
