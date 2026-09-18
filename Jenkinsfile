@@ -29,10 +29,14 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
+                echo 'Creating Python virtual environment...'
+
+                sh 'python3 -m venv .jenkins-venv'
+
                 echo 'Installing Python dependencies...'
 
-                sh 'python3 -m pip install --upgrade pip'
-                sh 'python3 -m pip install -r requirements.txt'
+                sh '.jenkins-venv/bin/python -m pip install --upgrade pip'
+                sh '.jenkins-venv/bin/python -m pip install -r requirements.txt'
             }
         }
 
@@ -40,7 +44,7 @@ pipeline {
             steps {
                 echo 'Checking Python syntax...'
 
-                sh 'python3 -m py_compile finalapp.py'
+                sh '.jenkins-venv/bin/python -m py_compile finalapp.py'
             }
         }
 
@@ -49,7 +53,7 @@ pipeline {
                 echo 'Checking Flask application...'
 
                 sh '''
-                    python3 -c "import finalapp; print('Flask application imported successfully')"
+                    .jenkins-venv/bin/python -c "import finalapp; print('Flask application imported successfully')"
                 '''
             }
         }
