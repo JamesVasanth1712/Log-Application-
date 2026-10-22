@@ -1,0 +1,33 @@
+
+name: GitHub PR Alert
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-alert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Detect Pull Request
+        env:
+          REPOSITORY: ${{ github.repository }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          echo "New Pull Request detected"
+          echo "Repository: $REPOSITORY"
+          echo "PR Number: $PR_NUMBER"
+          echo "Title: $PR_TITLE"
+          echo "Author: $PR_AUTHOR"
+          echo "PR URL: $PR_URL"
