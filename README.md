@@ -32,7 +32,7 @@ This tool automatically extracts insights like errors, warnings, status codes, I
 - Accepts `.txt`, `.log`, `.csv`, `.xlsx` files  
 - Clean dashboard UI (Flask)  
 - Shows structured JSON output for chart usage  
-
+Testing GitHub PR alert workflow.
 ---
 
 ## 📁 Project Structure
